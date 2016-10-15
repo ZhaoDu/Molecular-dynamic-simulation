@@ -7,5 +7,9 @@ Tongji University
 what a just fond
 gitskills study
 what and \and
+<<<<<<< Updated upstream
 what a fi	
 gitskills is powerful
+=======
+what a fi	and
+>>>>>>> Stashed changes

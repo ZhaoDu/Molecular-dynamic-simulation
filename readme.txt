@@ -6,4 +6,4 @@ what's more I love git
 Tongji University
 what a just fond
 gitskills study
-what and 
+what and \and

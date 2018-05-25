@@ -1,0 +1,102 @@
+# Tensile loading script      
+# Author:	ZhaoDu									   
+# Date:		29 Mar 2017
+# ----- Variables ---------
+echo				screen
+log					log.tensile.txt
+variable			fn string equilandmove      		    # filename
+variable			data index data.equil.done				# data file
+variable			cutoff equal 12.5						# cut-off distance
+variable			miniacc	equal 1.0e-18				    # minimize accurate
+variable			dt equal 1							    # normal timesteps
+variable			T1 equal 298.15							
+variable			v_down equal -0.0005				    # loading rate 
+variable 		    zfl equal -68							# final lower z coordinate after change_box
+variable 		    zfixl equal 62.5 						# fix lower z coordinate
+variable 		    zfh equal 68.5 						    # final higher z coordinate after change box
+
+# ----- Initialization ----------------------------------------------------------------
+dimension			3
+units				real
+boundary			p p p
+atom_style			full
+
+# ----- Atom and forcefield information -----------------------------------------------
+pair_style			lj/class2/coul/long ${cutoff}
+bond_style			class2
+angle_style			class2
+dihedral_style		class2
+improper_style		class2
+kspace_style		ewald 1.0e-4
+
+read_data			${data}
+
+# ----- Global setting ----------------------------------------------------------------
+group				sio2 type 1 2
+group				asp type 3:19
+neighbor			5.0 bin
+neigh_modify		every 5 delay 0 check yes one 20000 page 200000 exclude group sio2 sio2
+
+# thermo output
+compute         	Tasp asp temp
+thermo_style		custom step c_Tasp atoms etotal ke pe
+thermo_modify		lost ignore 
+thermo				100
+
+# global fix
+velocity			sio2 set 0.0 0.0 0.0 units box
+fix					1 sio2 rigid single
+fix					2 sio2 setforce 0.0 0.0 0.0 
+
+# ----- Minimize Stage 0 -------------------------------------------------------------
+timestep			0.1
+minimize			${miniacc} ${miniacc} 10000 1000000
+write_restart		restart.${fn}.minimize
+
+# ---- Tensile moving ------------------------------------------------------------------
+change_box			all z final ${zfl} ${zfh} boundary p p p units box
+
+timestep			${dt}
+minimize			${miniacc} ${miniacc} 10000 1000000
+
+region				upper block INF INF INF INF ${zfixl} ${zfh} units box
+group				fixed region upper
+group				masp subtract asp fixed
+
+velocity        	fixed set 0.0 0.0 0.0 units box
+compute         	Tmasp masp temp
+
+thermo_style		custom step c_Tmasp etotal pe ke 
+thermo				100
+thermo_modify     	lost warn
+# ---- run the simulation -------------------------------------------------------------
+fix 				3 asp nve
+fix 				4 masp temp/rescale 50 298.15 298.15 0.1 1
+fix 				5 fixed setforce 0.0 0.0 0.0  
+fix 				6 sio2 move linear 0.0 0.0 ${v_down} units box
+
+variable        	p0 equal step
+variable        	p1 equal f_2[1]
+variable        	p2 equal f_2[2]
+variable        	p3 equal f_2[3]
+
+fix 				7 all print 1 "${p0} ${p1} ${p2} ${p3} " file ${fn}.move.txt screen no
+dump				1 all custom 100 ${fn}.lammpstrj id type mass xs ys zs fx fy fz vx vy vz
+
+reset_timestep 		0
+timestep 			1
+run 				80000
+write_restart 		restart.relax.move
+
+unfix				1
+unfix 				2
+unfix 				3
+unfix				4
+unfix				5
+unfix 				6
+unfix 				7
+undump 			    1
+
+write_restart 		restart.${fn}.done
+write_data			data.${fn}.done
+print				"All done"

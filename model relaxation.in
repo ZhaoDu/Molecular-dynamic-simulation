@@ -1,0 +1,72 @@
+# Model relaxation of pull-off model     
+# Author:	ZhaoDu									   
+# Date:		29 Mar 2017								   						# 
+# Forcefield PCFF
+echo				screen
+log					log.tensile.txt
+# ----- Variables ---------
+variable			fn string equil  			   			# filename
+variable			data index data.system				    # data file
+variable			cutoff equal 12.5						# cut-off distance
+variable			miniacc	equal 1.0e-18				    # minimize accurate
+variable			dt equal 1							    # normal timesteps
+variable			T equal 298.15							
+
+# ----- Initialization ----------------------------------------------------------------
+dimension			3
+units				real
+boundary			p p f
+atom_style			full
+
+# ----- Atom and forcefield information -----------------------------------------------
+pair_style			lj/class2/coul/long ${cutoff}
+bond_style			class2
+angle_style			class2
+dihedral_style		class2
+improper_style		class2
+kspace_style		ewald 1.0e-4
+kspace_modify		slab 3.0
+
+read_data			${data}
+
+# -----  Global setting ----------------------------------------------------------------
+group				sio2 type 1 2
+group				asp type 3:19
+neighbor			5.0 bin
+neigh_modify		every 5 delay 0 check yes one 20000 page 200000 exclude group sio2 sio2
+# thermo output
+compute         	Tasp asp temp
+thermo_style			custom step temp c_Tasp atoms etotal ke pe
+thermo_modify		lost ignore 
+thermo				100
+
+# global fix
+velocity			sio2 set 0.0 0.0 0.0 units box
+fix					1 sio2 rigid single
+fix					2 sio2 setforce 0.0 0.0 0.0 
+fix					3 asp wall/reflect zhi EDGE units box
+run 				0
+# ----- Minimize Stage 0 -------------------------------------------------------------
+timestep			${dt}
+minimize			${miniacc} ${miniacc} 10000 1000000
+
+# ----- Equilibration Stage 1 (NVT at 298K) ------------------------------------------
+velocity          	asp create ${T} 4925560 rot yes mom yes dist gaussian units box
+velocity 			asp zero linear
+run					0
+velocity 			asp scale ${T} 
+fix					4 asp nvt temp ${T} ${T} 50.0
+fix 				5 asp momentum 1 linear 1 1 1
+dump 				1 all atom 100 dump.${fn}
+reset_timestep 		0
+timestep			0.1
+run					500000	
+unfix				1
+unfix 				2
+unfix 				3
+unfix 				4
+unfix				5
+undump				1
+write_restart		restart.${fn}.NVT
+write_data			data.${fn}.done
+print				"All done"

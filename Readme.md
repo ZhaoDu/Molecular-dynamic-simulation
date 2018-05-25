@@ -5,3 +5,10 @@ This project is mainly about molecular dynamic simulation of asphalt binder and 
 * Dynamic relaxation of simulation models
 * Pull-off simulation of asphalt/aggregate interface
 * AFM/Nanoindentation simulation
+## Modeling
+### Modeling of asphalt
+
+
+### Modeling of quartz
+
+### Modeling of asphalt-aggregte interface

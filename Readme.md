@@ -29,7 +29,7 @@ It should be **noticed** that quartz modeling method with lammps in *modeling_qu
 Asphalt-aggregate interface model is some kind of assembly of asphalt and aggregate components.Details can be found in *modeling asp-agg interface.in*
 
 <figure class="third">
-    <img src="https://raw.githubusercontent.com/ZhaoDu/Molecular-dynamic-simulation/master/Image/asphalt.png"width = "300" alt="asp_agg interface">
-    <img src="https://raw.githubusercontent.com/ZhaoDu/Molecular-dynamic-simulation/master/Image/quartz.png"width = "300" alt="asp_agg interface">
-    <img src="https://raw.githubusercontent.com/ZhaoDu/Molecular-dynamic-simulation/master/Image/asp-agg%20interface.png"width = "300" alt="asp_agg interface">
+    <img src="https://raw.githubusercontent.com/ZhaoDu/Molecular-dynamic-simulation/master/Image/asphalt.png"width = "100" alt="asp_agg interface">
+    <img src="https://raw.githubusercontent.com/ZhaoDu/Molecular-dynamic-simulation/master/Image/quartz.png"width = "100" alt="asp_agg interface">
+    <img src="https://raw.githubusercontent.com/ZhaoDu/Molecular-dynamic-simulation/master/Image/asp-agg%20interface.png"width = "100" alt="asp_agg interface">
 </figure>
